@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/PoiScript/iso8601-duration.svg?branch=master)](https://travis-ci.org/PoiScript/iso8601-duration)
+[![docs.rs](https://docs.rs/iso8601-duration/badge.svg)](https://docs.rs/iso8601-duration)
+[![crates.io](https://img.shields.io/crates/v/iso8601-duration.svg)](https://crates.io/crates/iso8601-duration)
 
 # iso8601-duration
 
@@ -55,4 +57,6 @@ use nom::{error::ErrorKind, Err};
  );
 ```
 
-License: MIT
+## License
+
+MIT
