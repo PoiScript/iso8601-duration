@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/PoiScript/iso8601-duration.svg?branch=master)](https://travis-ci.org/PoiScript/iso8601-duration)
+
 # iso8601-duration
 
 Parse ISO8601 duration format.

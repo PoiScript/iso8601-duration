@@ -9,5 +9,8 @@ edition = "2018"
 license = "MIT"
 keywords = ["iso8601", "duration", "parser"]
 
+[badges]
+travis-ci = { repository = "PoiScript/iso8601-duration" }
+
 [dependencies]
 nom = "5.0.1"
