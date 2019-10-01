@@ -1,0 +1,13 @@
+[package]
+name = "iso8601-duration"
+version = "0.1.0"
+authors = ["PoiScript <poiscript@gmail.com>"]
+description = "Parse ISO8601 duration format."
+repository = "https://github.com/PoiScript/iso8601-duration"
+readme = "README.md"
+edition = "2018"
+license = "MIT"
+keywords = ["iso8601", "duration", "parser"]
+
+[dependencies]
+nom = "5.0.1"
