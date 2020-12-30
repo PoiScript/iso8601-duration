@@ -6,11 +6,13 @@ use nom::{
     bytes::complete::tag,
     character::complete::digit1,
     combinator::{all_consuming, map_res, opt},
-    error::{ErrorKind, ParseError},
+    error::{Error, ErrorKind, ParseError},
     number::complete::float,
     sequence::{preceded, separated_pair, terminated, tuple},
     Err, IResult,
 };
+
+const YEAR_IN_S: u64 = 31556952; // gregorian - includes leap-seconds
 
 #[derive(Debug, PartialEq)]
 pub struct Duration {
@@ -35,17 +37,20 @@ impl Duration {
     }
 
     pub fn to_std(&self) -> StdDuration {
-        StdDuration::from_secs_f32(
-            self.year * 60. * 60. * 24. * 30. * 12.
-                + self.month * 60. * 60. * 24. * 30.
-                + self.day * 60. * 60. * 24.
-                + self.hour * 60. * 60.
-                + self.minute * 60.
-                + self.second,
+        let millis = (self.second.fract() * 1000.0).round() as u64;
+        StdDuration::from_millis(
+            (self.year.round() as u64 * YEAR_IN_S
+                + self.month.round() as u64 * 60 * 60 * 24 * 30 // there is no official answer on how long a month is, so 30 days will have to do
+                + self.day.round() as u64 * 60 * 60 * 24
+                + self.hour.round() as u64 * 60 * 60
+                + self.minute.round() as u64 * 60
+                + self.second.trunc() as u64)
+                * 1000
+                + millis,
         )
     }
 
-    pub fn parse(input: &str) -> Result<Duration, Err<(&str, ErrorKind)>> {
+    pub fn parse(input: &str) -> Result<Duration, Err<Error<&str>>> {
         let (_, duration) = all_consuming(preceded(
             tag("P"),
             alt((parse_week_format, parse_basic_format)),

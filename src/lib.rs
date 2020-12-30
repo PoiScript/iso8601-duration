@@ -10,8 +10,8 @@
 //!
 //! ```rust
 //! use iso8601_duration::Duration;
-//! use nom::{error::ErrorKind, Err};
-//!
+//! use nom::{error::ErrorKind, error::Error};
+//! use std::time::Duration as StdDuration;
 //!  assert_eq!(
 //!      Duration::parse("P23DT23H"),
 //!      Ok(Duration::new(0., 0., 23., 23., 0., 0.))
@@ -32,22 +32,33 @@
 //!      Duration::parse("P12W"),
 //!      Ok(Duration::new(0., 0., 84., 0., 0., 0.))
 //!  );
-//!
+//!  assert_eq!(
+//!      Duration::parse("PT30M5S").unwrap().to_std(),
+//!      StdDuration::new(30 * 60 + 5, 0)
+//!  );
+//!  assert_eq!(
+//!      Duration::parse("PT5H5M5S").unwrap().to_std(),
+//!      StdDuration::new(5 * 3600 + 5 * 60 + 5, 0)
+//!  );
+//!  assert_eq!(
+//!      Duration::parse("PT5H5M5.555S").unwrap().to_std(),
+//!      StdDuration::new(5 * 3600 + 5 * 60 + 5, 555_000_000)
+//!  );
 //!  assert_eq!(
 //!      Duration::parse("PT"),
-//!      Err(Err::Error(("", ErrorKind::Verify)))
+//!      Err(nom::Err::Error(Error { input: "", code: ErrorKind::Verify }))
 //!  );
 //!  assert_eq!(
 //!      Duration::parse("P12WT12H30M5S"),
-//!      Err(Err::Error(("T12H30M5S", ErrorKind::Eof)))
+//!      Err(nom::Err::Error(Error { input: "T12H30M5S", code: ErrorKind::Eof }))
 //!  );
 //!  assert_eq!(
 //!      Duration::parse("P0.5S0.5M"),
-//!      Err(Err::Error(("0.5S0.5M", ErrorKind::Verify)))
+//!      Err(nom::Err::Error(Error { input: "0.5S0.5M", code: ErrorKind::Verify }))
 //!  );
 //!  assert_eq!(
 //!      Duration::parse("P0.5A"),
-//!      Err(Err::Error(("0.5A", ErrorKind::Verify)))
+//!      Err(nom::Err::Error(Error { input: "0.5A", code: ErrorKind::Verify }))
 //!  );
 //! ```
 
