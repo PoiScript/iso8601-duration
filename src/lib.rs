@@ -9,8 +9,7 @@
 //! # Usage
 //!
 //! ```rust
-//! use iso8601_duration::Duration;
-//! use nom::{error::ErrorKind, error::Error};
+//! use iso8601_duration::{ Duration, DurationParseError };
 //! use std::time::Duration as StdDuration;
 //!  assert_eq!(
 //!      Duration::parse("P23DT23H"),
@@ -46,22 +45,22 @@
 //!  );
 //!  assert_eq!(
 //!      Duration::parse("PT"),
-//!      Err(nom::Err::Error(Error { input: "", code: ErrorKind::Verify }))
+//!      Err(DurationParseError::new("Parsing Error: Error { input: \"\", code: Verify }"))
 //!  );
 //!  assert_eq!(
 //!      Duration::parse("P12WT12H30M5S"),
-//!      Err(nom::Err::Error(Error { input: "T12H30M5S", code: ErrorKind::Eof }))
+//!      Err(DurationParseError::new("Parsing Error: Error { input: \"T12H30M5S\", code: Eof }"))
 //!  );
 //!  assert_eq!(
 //!      Duration::parse("P0.5S0.5M"),
-//!      Err(nom::Err::Error(Error { input: "0.5S0.5M", code: ErrorKind::Verify }))
+//!      Err(DurationParseError::new("Parsing Error: Error { input: \"0.5S0.5M\", code: Verify }"))
 //!  );
 //!  assert_eq!(
 //!      Duration::parse("P0.5A"),
-//!      Err(nom::Err::Error(Error { input: "0.5A", code: ErrorKind::Verify }))
+//!      Err(DurationParseError::new("Parsing Error: Error { input: \"0.5A\", code: Verify }"))
 //!  );
 //! ```
 
 mod duration;
 
-pub use crate::duration::Duration;
+pub use crate::duration::{Duration, DurationParseError};

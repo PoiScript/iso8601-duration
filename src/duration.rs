@@ -50,13 +50,35 @@ impl Duration {
         )
     }
 
-    pub fn parse(input: &str) -> Result<Duration, Err<Error<&str>>> {
+    pub fn parse(input: &str) -> Result<Duration, DurationParseError> {
         let (_, duration) = all_consuming(preceded(
             tag("P"),
             alt((parse_week_format, parse_basic_format)),
         ))(input)?;
 
         Ok(duration)
+    }
+}
+
+impl FromStr for Duration {
+    type Err = DurationParseError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Duration::parse(s).map_err(DurationParseError::from)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DurationParseError(String);
+
+impl DurationParseError {
+    pub fn new<S: Into<String>>(s: S) -> DurationParseError {
+        DurationParseError(s.into())
+    }
+}
+
+impl From<Err<Error<&str>>> for DurationParseError {
+    fn from(err: Err<Error<&str>>) -> Self {
+        DurationParseError(err.to_string())
     }
 }
 
