@@ -1,3 +1,4 @@
+use std::fmt;
 use std::str::FromStr;
 use std::time::Duration as StdDuration;
 
@@ -79,6 +80,12 @@ impl DurationParseError {
 impl From<Err<Error<&str>>> for DurationParseError {
     fn from(err: Err<Error<&str>>) -> Self {
         DurationParseError(err.to_string())
+    }
+}
+
+impl fmt::Display for DurationParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
