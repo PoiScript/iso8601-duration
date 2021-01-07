@@ -13,7 +13,7 @@ use nom::{
     Err, IResult,
 };
 
-const YEAR_IN_S: u64 = 31556952; // gregorian - includes leap-seconds
+const YEAR_IN_S: f64 = 31556952.0; // gregorian - includes leap-seconds
 
 #[derive(Debug, PartialEq)]
 pub struct Duration {
@@ -37,14 +37,17 @@ impl Duration {
         }
     }
 
+    // In this scheme we try to balance the flexibility of fractional units
+    // with the need to avoid rounding errors caused by floating point drift.
+    // The smaller we keep the floats, the better.
     pub fn to_std(&self) -> StdDuration {
         let millis = (self.second.fract() * 1000.0).round() as u64;
         StdDuration::from_millis(
-            (self.year.round() as u64 * YEAR_IN_S
-                + self.month.round() as u64 * 60 * 60 * 24 * 30 // there is no official answer on how long a month is, so 30 days will have to do
-                + self.day.round() as u64 * 60 * 60 * 24
-                + self.hour.round() as u64 * 60 * 60
-                + self.minute.round() as u64 * 60
+            ((self.year as f64 * YEAR_IN_S).round() as u64
+                + (self.month * 30.42 * 60.0 * 60.0 * 24.0).round() as u64
+                + (self.day * 24.0 * 60.0 * 60.0).round() as u64
+                + (self.hour * 60.0 * 60.0).round() as u64
+                + (self.minute * 60.0).round() as u64
                 + self.second.trunc() as u64)
                 * 1000
                 + millis,
@@ -170,4 +173,30 @@ fn parse_week_format(input: &str) -> IResult<&str, Duration> {
 
 fn _parse_extended_format(_input: &str) -> IResult<&str, Duration> {
     unimplemented!()
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use std::time::Duration as StdDuration;
+    #[test]
+    fn parsing_units() {
+        let d1: Duration = "P10Y10M10DT10H10M10S".parse().unwrap();
+        assert_eq!(d1.to_std(), StdDuration::from_secs(342753010));
+        let d2: Duration = "P10Y10M10DT10H10M10.5S".parse().unwrap();
+        assert_eq!(d2.to_std(), StdDuration::from_millis(342753010500));
+        let d3: Duration = "P10.5Y10M10DT10H10M10S".parse().unwrap();
+        assert_eq!(d3.to_std(), StdDuration::from_secs(358531486));
+        let d4: Duration = "P10Y10.5M10DT10H10M10S".parse().unwrap();
+        assert_eq!(d4.to_std(), StdDuration::from_secs(344067154));
+        let d5: Duration = "P10Y10M10.5DT10H10M10S".parse().unwrap();
+        assert_eq!(d5.to_std(), StdDuration::from_secs(342796210));
+        let d6: Duration = "P10Y10M10DT10.5H10M10S".parse().unwrap();
+        assert_eq!(d6.to_std(), StdDuration::from_secs(342754810));
+        let d7: Duration = "PT5.5H5.5M".parse().unwrap();
+        assert_eq!(
+            d7.to_std(),
+            StdDuration::from_secs((5.5 * 60. * 60.) as u64 + (5.5 * 60.) as u64)
+        );
+    }
 }
