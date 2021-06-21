@@ -13,4 +13,4 @@ keywords = ["iso8601", "duration", "parser"]
 travis-ci = { repository = "PoiScript/iso8601-duration" }
 
 [dependencies]
-nom = "5.0.1"
+nom = "6.2.0"
