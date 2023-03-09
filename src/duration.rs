@@ -45,7 +45,7 @@ impl Duration {
         )
     }
 
-    pub fn parse(input: &str) -> Result<Duration, Err<(&str, ErrorKind)>> {
+    pub fn parse(input: &str) -> Result<Duration, Err<nom::error::Error<&str>>> {
         let (_, duration) = all_consuming(preceded(
             tag("P"),
             alt((parse_week_format, parse_basic_format)),

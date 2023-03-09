@@ -35,19 +35,19 @@
 //!
 //!  assert_eq!(
 //!      Duration::parse("PT"),
-//!      Err(Err::Error(("", ErrorKind::Verify)))
+//!      Err(Err::Error(nom::error::Error::new("", ErrorKind::Verify)))
 //!  );
 //!  assert_eq!(
 //!      Duration::parse("P12WT12H30M5S"),
-//!      Err(Err::Error(("T12H30M5S", ErrorKind::Eof)))
+//!      Err(Err::Error(nom::error::Error::new("T12H30M5S", ErrorKind::Eof)))
 //!  );
 //!  assert_eq!(
 //!      Duration::parse("P0.5S0.5M"),
-//!      Err(Err::Error(("0.5S0.5M", ErrorKind::Verify)))
+//!      Err(Err::Error(nom::error::Error::new("0.5S0.5M", ErrorKind::Verify)))
 //!  );
 //!  assert_eq!(
 //!      Duration::parse("P0.5A"),
-//!      Err(Err::Error(("0.5A", ErrorKind::Verify)))
+//!      Err(Err::Error(nom::error::Error::new("0.5A", ErrorKind::Verify)))
 //!  );
 //! ```
 
