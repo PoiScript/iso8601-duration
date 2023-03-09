@@ -61,7 +61,7 @@ use nom::{error::ErrorKind, Err};
 
 ### Unreleased
 
-- Breaking: Updated nom to version 7
+- Breaking: Updated nom to version 7 (https://github.com/PoiScript/iso8601-duration/pull/13)
 
 ## License
 
