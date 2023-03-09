@@ -57,6 +57,12 @@ use nom::{error::ErrorKind, Err};
  );
 ```
 
+## Changelog
+
+### Unreleased
+
+- Breaking: Updated nom to version 7
+
 ## License
 
 MIT
