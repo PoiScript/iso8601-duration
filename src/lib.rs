@@ -10,7 +10,6 @@
 //!
 //! ```rust
 //! use iso8601_duration::Duration;
-//! use nom::{error::ErrorKind, Err};
 //!
 //!  assert_eq!(
 //!      Duration::parse("P23DT23H"),
@@ -41,4 +40,4 @@
 
 mod duration;
 
-pub use crate::duration::Duration;
+pub use crate::duration::{Duration, ParseDurationError};

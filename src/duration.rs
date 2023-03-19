@@ -1,12 +1,12 @@
-use std::str::FromStr;
 use std::time::Duration as StdDuration;
+use std::{fmt, str::FromStr};
 
 use nom::{
     branch::alt,
     bytes::complete::tag,
     character::complete::digit1,
     combinator::{all_consuming, map_res, opt},
-    error::{Error, ErrorKind, ParseError},
+    error::{ErrorKind, ParseError},
     number::complete::float,
     sequence::{preceded, separated_pair, terminated, tuple},
     Err, Finish, IResult,
@@ -45,13 +45,76 @@ impl Duration {
         )
     }
 
-    pub fn parse(input: &str) -> Result<Duration, Error<&str>> {
+    pub fn parse(input: &str) -> Result<Duration, ParseDurationError> {
         all_consuming(preceded(
             tag("P"),
             alt((parse_week_format, parse_basic_format)),
         ))(input)
         .finish()
         .map(|(_, duration)| duration)
+        .map_err(|err| ParseDurationError::new(input, err))
+    }
+}
+
+#[derive(PartialEq, Eq)]
+pub struct ParseDurationError {
+    pub input: String,
+    pub position: usize,
+    pub kind: ErrorKind,
+}
+
+impl ParseDurationError {
+    fn new(input: &str, err: nom::error::Error<&str>) -> Self {
+        ParseDurationError {
+            input: input.to_string(),
+            position: input.len() - err.input.len(),
+            kind: err.code,
+        }
+    }
+}
+
+impl fmt::Debug for ParseDurationError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Parse error: {:?} in {:?} at position {}",
+            self.kind, self.input, self.position
+        )
+    }
+}
+
+impl FromStr for Duration {
+    type Err = ParseDurationError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Duration::parse(s)
+    }
+}
+
+impl fmt::Display for Duration {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("P")?;
+        if self.year > 0.0 {
+            write!(f, "{}Y", self.year)?;
+        }
+        if self.month > 0.0 {
+            write!(f, "{}M", self.month)?;
+        }
+        if self.day > 0.0 {
+            write!(f, "{}D", self.day)?;
+        }
+        if self.hour > 0.0 || self.minute > 0.0 || self.second > 0.0 {
+            f.write_str("T")?;
+        }
+        if self.hour > 0.0 {
+            write!(f, "{}H", self.hour)?;
+        }
+        if self.minute > 0.0 {
+            write!(f, "{}M", self.minute)?;
+        }
+        if self.second > 0.0 {
+            write!(f, "{}S", self.second)?;
+        }
+        Ok(())
     }
 }
 
