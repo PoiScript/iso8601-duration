@@ -33,22 +33,10 @@
 //!      Ok(Duration::new(0., 0., 84., 0., 0., 0.))
 //!  );
 //!
-//!  assert_eq!(
-//!      Duration::parse("PT"),
-//!      Err(Err::Error(("", ErrorKind::Verify)))
-//!  );
-//!  assert_eq!(
-//!      Duration::parse("P12WT12H30M5S"),
-//!      Err(Err::Error(("T12H30M5S", ErrorKind::Eof)))
-//!  );
-//!  assert_eq!(
-//!      Duration::parse("P0.5S0.5M"),
-//!      Err(Err::Error(("0.5S0.5M", ErrorKind::Verify)))
-//!  );
-//!  assert_eq!(
-//!      Duration::parse("P0.5A"),
-//!      Err(Err::Error(("0.5A", ErrorKind::Verify)))
-//!  );
+//!  assert!(Duration::parse("PT").is_err());
+//!  assert!(Duration::parse("P12WT12H30M5S").is_err());
+//!  assert!(Duration::parse("P0.5S0.5M").is_err());
+//!  assert!(Duration::parse("P0.5A").is_err());
 //! ```
 
 mod duration;

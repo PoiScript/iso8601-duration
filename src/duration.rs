@@ -6,10 +6,10 @@ use nom::{
     bytes::complete::tag,
     character::complete::digit1,
     combinator::{all_consuming, map_res, opt},
-    error::{ErrorKind, ParseError},
+    error::{Error, ErrorKind, ParseError},
     number::complete::float,
     sequence::{preceded, separated_pair, terminated, tuple},
-    Err, IResult,
+    Err, Finish, IResult,
 };
 
 #[derive(Debug, PartialEq)]
@@ -45,13 +45,13 @@ impl Duration {
         )
     }
 
-    pub fn parse(input: &str) -> Result<Duration, Err<(&str, ErrorKind)>> {
-        let (_, duration) = all_consuming(preceded(
+    pub fn parse(input: &str) -> Result<Duration, Error<&str>> {
+        all_consuming(preceded(
             tag("P"),
             alt((parse_week_format, parse_basic_format)),
-        ))(input)?;
-
-        Ok(duration)
+        ))(input)
+        .finish()
+        .map(|(_, duration)| duration)
     }
 }
 
@@ -64,11 +64,7 @@ fn decimal_comma_number(input: &str) -> IResult<&str, f32> {
 fn value_with_designator(designator: &str) -> impl Fn(&str) -> IResult<&str, f32> + '_ {
     move |input| {
         terminated(
-            alt((
-                float,
-                decimal_comma_number,
-                map_res(digit1, |s: &str| f32::from_str(s)),
-            )),
+            alt((float, decimal_comma_number, map_res(digit1, f32::from_str))),
             tag(designator),
         )(input)
     }
