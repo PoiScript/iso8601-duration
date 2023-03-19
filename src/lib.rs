@@ -39,5 +39,7 @@
 //! ```
 
 mod duration;
+#[cfg(feature = "serde")]
+mod serde;
 
 pub use crate::duration::{Duration, ParseDurationError};
