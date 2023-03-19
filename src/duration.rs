@@ -12,7 +12,7 @@ use nom::{
     Err, Finish, IResult,
 };
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Duration {
     pub year: f32,
     pub month: f32,

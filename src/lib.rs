@@ -39,6 +39,8 @@
 //! ```
 
 mod duration;
+#[cfg(feature = "chrono")]
+mod chrono;
 #[cfg(feature = "serde")]
 mod serde;
 
