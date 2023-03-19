@@ -1,5 +1,7 @@
 //! Parse ISO8601 duration format.
 //!
+//! <https://en.wikipedia.org/wiki/ISO_8601#Durations>
+//!
 //! # Installation
 //!
 //! ```toml
@@ -12,35 +14,50 @@
 //! use iso8601_duration::Duration;
 //!
 //!  assert_eq!(
-//!      Duration::parse("P23DT23H"),
-//!      Ok(Duration::new(0., 0., 23., 23., 0., 0.))
-//!  );
-//!  assert_eq!(
-//!      Duration::parse("P3Y6M4DT12H30M5S"),
+//!      "P3Y6M4DT12H30M5S".parse(),
 //!      Ok(Duration::new(3., 6., 4., 12., 30., 5.))
 //!  );
-//!  assert_eq!(
-//!      Duration::parse("P0.5Y"),
-//!      Ok(Duration::new(0.5, 0., 0., 0., 0., 0.))
-//!  );
-//!  assert_eq!(
-//!      Duration::parse("P0.5Y0.5M"),
-//!      Ok(Duration::new(0.5, 0.5, 0., 0., 0., 0.))
-//!  );
-//!  assert_eq!(
-//!      Duration::parse("P12W"),
-//!      Ok(Duration::new(0., 0., 84., 0., 0., 0.))
-//!  );
+//!  assert_eq!("P23DT23H".parse::<Duration>().unwrap().num_hours(), Some(575.));
+//!  assert_eq!("P0.5Y".parse::<Duration>().unwrap().num_years(), Some(0.5));
+//!  assert_eq!("P0.5Y0.5M".parse::<Duration>().unwrap().num_months(), Some(6.5));
+//!  assert_eq!("P12W".parse::<Duration>().unwrap().num_days(), Some(84.));
 //!
-//!  assert!(Duration::parse("PT").is_err());
-//!  assert!(Duration::parse("P12WT12H30M5S").is_err());
-//!  assert!(Duration::parse("P0.5S0.5M").is_err());
-//!  assert!(Duration::parse("P0.5A").is_err());
+//!  assert!("PT".parse::<Duration>().is_err());
+//!  assert!("P12WT12H30M5S".parse::<Duration>().is_err());
+//!  assert!("P0.5S0.5M".parse::<Duration>().is_err());
+//!  assert!("P0.5A".parse::<Duration>().is_err());
+//! ```
+//!
+//! # `year` and `month`
+//!
+//! `Duration` can be converted to either `std::time::Duration` or
+//! `chrono::Duration` by calling `to_std` or `to_chrono`.
+//!
+//! Both `to_std` and `to_chrono` will return `None` if the duration
+//! includes `year` and `month`. Because ISO8601 duration format allows
+//! the usage of `year` and `month`, and these durations are non-standard.
+//! Since months can have 28, 29 30, 31 days, and years can have either
+//! 365 or 366 days.
+//!
+//! To perform a lossless conversion, a starting date must be specified:
+//!
+//! ```rust
+//! // requires `chrono` feature
+//!
+//! use iso8601_duration::Duration;
+//! use chrono::DateTime;
+//!
+//! let one_month: Duration = "P1M".parse().unwrap();
+//! let date = DateTime::parse_from_rfc3339("2000-02-01T00:00:00Z").unwrap();
+//! assert_eq!(
+//!     one_month.to_chrono_at_datetime(date).num_days(),
+//!     29 // 2000 is a leap year
+//! );
 //! ```
 
-mod duration;
 #[cfg(feature = "chrono")]
 mod chrono;
+mod duration;
 #[cfg(feature = "serde")]
 mod serde;
 

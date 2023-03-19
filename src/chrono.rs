@@ -12,6 +12,10 @@ fn seconds_to_chrono_duration(seconds: f32) -> ChronoDuration {
 }
 
 impl Duration {
+    /// Convert `Duration` to `chrono::Duration`.
+    ///
+    /// This method will return `None` is `Duration` contains
+    /// `year` or `month`.
     pub fn to_chrono(&self) -> Option<ChronoDuration> {
         // we can't get the duration of year or month,
         // without knowing the start date.
@@ -23,6 +27,11 @@ impl Duration {
             self.day * 60. * 60. * 24. + self.hour * 60. * 60. + self.minute * 60. + self.second;
 
         Some(seconds_to_chrono_duration(seconds))
+    }
+
+    /// Convert `Duration` to `chrono::Duration` at given datetime.
+    pub fn to_chrono_at_datetime<Tz: TimeZone>(&self, at: DateTime<Tz>) -> ChronoDuration {
+        (at.clone() + *self) - at
     }
 }
 

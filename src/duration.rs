@@ -23,6 +23,7 @@ pub struct Duration {
 }
 
 impl Duration {
+    /// Create a new duration
     pub fn new(year: f32, month: f32, day: f32, hour: f32, minute: f32, second: f32) -> Self {
         Duration {
             year,
@@ -34,6 +35,10 @@ impl Duration {
         }
     }
 
+    /// Return number of years in the duration
+    ///
+    /// This method will return `None` is `Duration` contains
+    /// `second`, `minute` or `hour`.
     pub fn num_years(&self) -> Option<f32> {
         if self.second > 0.0 || self.minute > 0.0 || self.hour > 0.0 {
             return None;
@@ -42,6 +47,10 @@ impl Duration {
         Some(self.year + self.month / 12.)
     }
 
+    /// Return number of months in the duration
+    ///
+    /// This method will return `None` is `Duration` contains
+    /// `second`, `minute` or `hour`.
     pub fn num_months(&self) -> Option<f32> {
         if self.second > 0.0 || self.minute > 0.0 || self.hour > 0.0 {
             return None;
@@ -50,6 +59,10 @@ impl Duration {
         Some(self.year * 12. + self.month)
     }
 
+    /// Return number of weeks in the duration
+    ///
+    /// This method will return `None` is `Duration` contains
+    /// `year` or `month`.
     pub fn num_weeks(&self) -> Option<f32> {
         if self.month > 0.0 || self.year > 0.0 {
             return None;
@@ -63,6 +76,10 @@ impl Duration {
         )
     }
 
+    /// Return number of days in the duration
+    ///
+    /// This method will return `None` is `Duration` contains
+    /// `year` or `month`.
     pub fn num_days(&self) -> Option<f32> {
         if self.month > 0.0 || self.year > 0.0 {
             return None;
@@ -71,6 +88,10 @@ impl Duration {
         Some(self.second / 60. / 60. / 24. + self.minute / 60. / 24. + self.hour / 24. + self.day)
     }
 
+    /// Return number of hours in the duration
+    ///
+    /// This method will return `None` is `Duration` contains
+    /// `year` or `month`.
     pub fn num_hours(&self) -> Option<f32> {
         if self.month > 0.0 || self.year > 0.0 {
             return None;
@@ -79,6 +100,10 @@ impl Duration {
         Some(self.second / 60. / 60. + self.minute / 60. + self.hour + self.day * 24.)
     }
 
+    /// Return number of minutes in the duration
+    ///
+    /// This method will return `None` is `Duration` contains
+    /// `year` or `month`.
     pub fn num_minutes(&self) -> Option<f32> {
         if self.month > 0.0 || self.year > 0.0 {
             return None;
@@ -87,6 +112,10 @@ impl Duration {
         Some(self.second / 60. + self.minute + self.hour * 60. + self.day * 60. * 24.)
     }
 
+    /// Return number of seconds in the duration
+    ///
+    /// This method will return `None` is `Duration` contains
+    /// `year` or `month`.
     pub fn num_seconds(&self) -> Option<f32> {
         if self.month > 0.0 || self.year > 0.0 {
             return None;
@@ -95,10 +124,18 @@ impl Duration {
         Some(self.second + self.minute * 60. + self.hour * 60. * 60. + self.day * 60. * 60. * 24.)
     }
 
+    /// Convert duration to `std::time::Duration`.
+    ///
+    /// This method will return `None` is `Duration` contains
+    /// `year` or `month`.
+    ///
+    /// See to know how to convert a `Duration` contains
+    /// `year` or `month`.
     pub fn to_std(&self) -> Option<StdDuration> {
         self.num_seconds().map(StdDuration::from_secs_f32)
     }
 
+    /// Parse given string into Duration
     pub fn parse(input: &str) -> Result<Duration, ParseDurationError> {
         all_consuming(preceded(
             tag("P"),
