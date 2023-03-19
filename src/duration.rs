@@ -34,15 +34,69 @@ impl Duration {
         }
     }
 
-    pub fn to_std(&self) -> StdDuration {
-        StdDuration::from_secs_f32(
-            self.year * 60. * 60. * 24. * 30. * 12.
-                + self.month * 60. * 60. * 24. * 30.
-                + self.day * 60. * 60. * 24.
-                + self.hour * 60. * 60.
-                + self.minute * 60.
-                + self.second,
+    pub fn num_years(&self) -> Option<f32> {
+        if self.second > 0.0 || self.minute > 0.0 || self.hour > 0.0 {
+            return None;
+        }
+
+        Some(self.year + self.month / 12.)
+    }
+
+    pub fn num_months(&self) -> Option<f32> {
+        if self.second > 0.0 || self.minute > 0.0 || self.hour > 0.0 {
+            return None;
+        }
+
+        Some(self.year * 12. + self.month)
+    }
+
+    pub fn num_weeks(&self) -> Option<f32> {
+        if self.month > 0.0 || self.year > 0.0 {
+            return None;
+        }
+
+        Some(
+            self.second / 60. / 60. / 24. / 7.
+                + self.minute / 60. / 24. / 7.
+                + self.hour / 24. / 7.
+                + self.day / 7.,
         )
+    }
+
+    pub fn num_days(&self) -> Option<f32> {
+        if self.month > 0.0 || self.year > 0.0 {
+            return None;
+        }
+
+        Some(self.second / 60. / 60. / 24. + self.minute / 60. / 24. + self.hour / 24. + self.day)
+    }
+
+    pub fn num_hours(&self) -> Option<f32> {
+        if self.month > 0.0 || self.year > 0.0 {
+            return None;
+        }
+
+        Some(self.second / 60. / 60. + self.minute / 60. + self.hour + self.day * 24.)
+    }
+
+    pub fn num_minutes(&self) -> Option<f32> {
+        if self.month > 0.0 || self.year > 0.0 {
+            return None;
+        }
+
+        Some(self.second / 60. + self.minute + self.hour * 60. + self.day * 60. * 24.)
+    }
+
+    pub fn num_seconds(&self) -> Option<f32> {
+        if self.month > 0.0 || self.year > 0.0 {
+            return None;
+        }
+
+        Some(self.second + self.minute * 60. + self.hour * 60. * 60. + self.day * 60. * 60. * 24.)
+    }
+
+    pub fn to_std(&self) -> Option<StdDuration> {
+        self.num_seconds().map(StdDuration::from_secs_f32)
     }
 
     pub fn parse(input: &str) -> Result<Duration, ParseDurationError> {

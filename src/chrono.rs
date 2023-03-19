@@ -42,11 +42,6 @@ impl<Tz: TimeZone> Add<Duration> for DateTime<Tz> {
                 )
                 .num_seconds();
 
-            dbg!(&seconds_in_this_year);
-            dbg!(&seconds_to_chrono_duration(
-                rhs.year * seconds_in_this_year as f32
-            ));
-
             d = d + seconds_to_chrono_duration(rhs.year * seconds_in_this_year as f32)
         }
 
@@ -68,14 +63,9 @@ impl<Tz: TimeZone> Add<Duration> for DateTime<Tz> {
             d = d + seconds_to_chrono_duration(rhs.month * seconds_in_this_month as f32)
         }
 
-        let seconds =
-            rhs.day * 60. * 60. * 24. + rhs.hour * 60. * 60. + rhs.minute * 60. + rhs.second;
-
-        let milliseconds = seconds.fract() * 1000.;
-        let seconds = seconds.trunc();
-
-        d = d + ChronoDuration::seconds(seconds as i64);
-        d = d + ChronoDuration::milliseconds(milliseconds as i64);
+        d = d + seconds_to_chrono_duration(
+            rhs.day * 60. * 60. * 24. + rhs.hour * 60. * 60. + rhs.minute * 60. + rhs.second,
+        );
 
         self + d
     }
