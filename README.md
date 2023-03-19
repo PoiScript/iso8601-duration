@@ -11,7 +11,7 @@ Parse ISO8601 duration format.
 ## Installation
 
 ```toml
-iso8601-duration = "0.1.0"
+iso8601-duration = "0.2.0"
 ```
 
 ## Usage

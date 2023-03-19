@@ -1,6 +1,6 @@
 [package]
 name = "iso8601-duration"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["PoiScript <poiscript@gmail.com>"]
 description = "Parse ISO8601 duration format."
 repository = "https://github.com/PoiScript/iso8601-duration"
