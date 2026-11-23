@@ -5,7 +5,7 @@
 //! # Installation
 //!
 //! ```toml
-//! iso8601-duration = "0.2.0"
+//! iso8601-duration = "0.3.0"
 //! ```
 //!
 //! # Usage
@@ -43,7 +43,6 @@
 //!
 //! ```rust
 //! // requires `chrono` feature
-//!
 //! use iso8601_duration::Duration;
 //! use chrono::DateTime;
 //!

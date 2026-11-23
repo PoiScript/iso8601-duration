@@ -5,26 +5,26 @@ use nom::{
     branch::alt,
     bytes::complete::tag,
     character::complete::digit1,
-    combinator::{all_consuming, map_res, opt},
+    character::complete::one_of,
+    combinator::{all_consuming, map_opt, opt, recognize, verify},
     error::{ErrorKind, ParseError},
-    number::complete::float,
-    sequence::{preceded, separated_pair, terminated, tuple},
+    sequence::{pair, preceded, terminated, tuple},
     Err, Finish, IResult,
 };
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Duration {
-    pub year: f32,
-    pub month: f32,
-    pub day: f32,
-    pub hour: f32,
-    pub minute: f32,
-    pub second: f32,
+    pub year: f64,
+    pub month: f64,
+    pub day: f64,
+    pub hour: f64,
+    pub minute: f64,
+    pub second: f64,
 }
 
 impl Duration {
     /// Create a new duration
-    pub fn new(year: f32, month: f32, day: f32, hour: f32, minute: f32, second: f32) -> Self {
+    pub fn new(year: f64, month: f64, day: f64, hour: f64, minute: f64, second: f64) -> Self {
         Duration {
             year,
             month,
@@ -37,9 +37,9 @@ impl Duration {
 
     /// Return number of years in the duration
     ///
-    /// This method will return `None` is `Duration` contains
+    /// This method will return `None` if `Duration` contains
     /// `second`, `minute` or `hour`.
-    pub fn num_years(&self) -> Option<f32> {
+    pub fn num_years(&self) -> Option<f64> {
         if self.second > 0.0 || self.minute > 0.0 || self.hour > 0.0 {
             return None;
         }
@@ -49,9 +49,9 @@ impl Duration {
 
     /// Return number of months in the duration
     ///
-    /// This method will return `None` is `Duration` contains
+    /// This method will return `None` if `Duration` contains
     /// `second`, `minute` or `hour`.
-    pub fn num_months(&self) -> Option<f32> {
+    pub fn num_months(&self) -> Option<f64> {
         if self.second > 0.0 || self.minute > 0.0 || self.hour > 0.0 {
             return None;
         }
@@ -61,9 +61,9 @@ impl Duration {
 
     /// Return number of weeks in the duration
     ///
-    /// This method will return `None` is `Duration` contains
+    /// This method will return `None` if `Duration` contains
     /// `year` or `month`.
-    pub fn num_weeks(&self) -> Option<f32> {
+    pub fn num_weeks(&self) -> Option<f64> {
         if self.month > 0.0 || self.year > 0.0 {
             return None;
         }
@@ -78,9 +78,9 @@ impl Duration {
 
     /// Return number of days in the duration
     ///
-    /// This method will return `None` is `Duration` contains
+    /// This method will return `None` if `Duration` contains
     /// `year` or `month`.
-    pub fn num_days(&self) -> Option<f32> {
+    pub fn num_days(&self) -> Option<f64> {
         if self.month > 0.0 || self.year > 0.0 {
             return None;
         }
@@ -90,9 +90,9 @@ impl Duration {
 
     /// Return number of hours in the duration
     ///
-    /// This method will return `None` is `Duration` contains
+    /// This method will return `None` if `Duration` contains
     /// `year` or `month`.
-    pub fn num_hours(&self) -> Option<f32> {
+    pub fn num_hours(&self) -> Option<f64> {
         if self.month > 0.0 || self.year > 0.0 {
             return None;
         }
@@ -102,9 +102,9 @@ impl Duration {
 
     /// Return number of minutes in the duration
     ///
-    /// This method will return `None` is `Duration` contains
+    /// This method will return `None` if `Duration` contains
     /// `year` or `month`.
-    pub fn num_minutes(&self) -> Option<f32> {
+    pub fn num_minutes(&self) -> Option<f64> {
         if self.month > 0.0 || self.year > 0.0 {
             return None;
         }
@@ -114,9 +114,9 @@ impl Duration {
 
     /// Return number of seconds in the duration
     ///
-    /// This method will return `None` is `Duration` contains
+    /// This method will return `None` if `Duration` contains
     /// `year` or `month`.
-    pub fn num_seconds(&self) -> Option<f32> {
+    pub fn num_seconds(&self) -> Option<f64> {
         if self.month > 0.0 || self.year > 0.0 {
             return None;
         }
@@ -126,13 +126,36 @@ impl Duration {
 
     /// Convert duration to `std::time::Duration`.
     ///
-    /// This method will return `None` is `Duration` contains
-    /// `year` or `month`.
+    /// This method returns `None` if the `Duration` contains `year` or
+    /// `month`, if any component is negative or not finite, or if the result
+    /// is too large for `std::time::Duration`. Each component is rounded to
+    /// the nearest nanosecond on its own, and the results are added.
     ///
-    /// See to know how to convert a `Duration` contains
-    /// `year` or `month`.
+    /// To convert a `Duration` that contains `year` or `month`, use
+    /// `to_chrono_at_datetime` (requires the `chrono` feature). See the
+    /// [crate documentation](crate#year-and-month).
     pub fn to_std(&self) -> Option<StdDuration> {
-        self.num_seconds().map(StdDuration::from_secs_f32)
+        if self.month > 0.0 || self.year > 0.0 {
+            return None;
+        }
+
+        // Convert each component on its own, then add exact integer durations.
+        // One f64 sum of all components loses nanoseconds on long durations.
+        self.seconds_by_component()
+            .iter()
+            .try_fold(StdDuration::ZERO, |total, &seconds| {
+                total.checked_add(StdDuration::try_from_secs_f64(seconds).ok()?)
+            })
+    }
+
+    /// Returns the day, hour, minute and second components, each in seconds.
+    pub(crate) fn seconds_by_component(&self) -> [f64; 4] {
+        [
+            self.day * 60. * 60. * 24.,
+            self.hour * 60. * 60.,
+            self.minute * 60.,
+            self.second,
+        ]
     }
 
     /// Parse given string into Duration
@@ -182,7 +205,24 @@ impl FromStr for Duration {
 }
 
 impl fmt::Display for Duration {
+    /// Writes the duration in the ISO 8601 basic format.
+    ///
+    /// Only positive components are written. A duration with no positive
+    /// component is written as `PT0S`, which parses again.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let fields = [
+            self.year,
+            self.month,
+            self.day,
+            self.hour,
+            self.minute,
+            self.second,
+        ];
+
+        if !fields.iter().any(|&field| field > 0.0) {
+            return f.write_str("PT0S");
+        }
+
         f.write_str("P")?;
         if self.year > 0.0 {
             write!(f, "{}Y", self.year)?;
@@ -209,19 +249,29 @@ impl fmt::Display for Duration {
     }
 }
 
-fn decimal_comma_number(input: &str) -> IResult<&str, f32> {
-    map_res(separated_pair(digit1, tag(","), digit1), |(a, b)| {
-        f32::from_str(&format!("{}.{}", a, b))
+/// Parses a non-negative decimal number with `.` or `,` as the decimal sign.
+///
+/// ISO 8601 allows digits with an optional fraction only. Signs, exponents,
+/// `inf` and `NaN` are rejected. For compatibility with 0.2, a fraction
+/// without an integer part (`.5`) is accepted. A value that overflows `f64`
+/// is an error.
+fn decimal_number(input: &str) -> IResult<&str, f64> {
+    let decimal_sign = || one_of(".,");
+    let text = alt((
+        recognize(pair(digit1, opt(pair(decimal_sign(), digit1)))),
+        recognize(pair(decimal_sign(), digit1)),
+    ));
+
+    map_opt(text, |text: &str| {
+        f64::from_str(&text.replace(',', "."))
+            .ok()
+            .filter(|value| value.is_finite())
     })(input)
 }
 
-fn value_with_designator(designator: &str) -> impl Fn(&str) -> IResult<&str, f32> + '_ {
-    move |input| {
-        terminated(
-            alt((float, decimal_comma_number, map_res(digit1, f32::from_str))),
-            tag(designator),
-        )(input)
-    }
+/// Parses a decimal number that the given designator letter follows.
+fn value_with_designator(designator: &str) -> impl Fn(&str) -> IResult<&str, f64> + '_ {
+    move |input| terminated(decimal_number, tag(designator))(input)
 }
 
 fn parse_basic_format(input: &str) -> IResult<&str, Duration> {
@@ -231,13 +281,17 @@ fn parse_basic_format(input: &str) -> IResult<&str, Duration> {
         opt(value_with_designator("D")),
     ))(input)?;
 
+    // A `T` designator must have at least one time component after it.
     let (input, time) = opt(preceded(
         tag("T"),
-        tuple((
-            opt(value_with_designator("H")),
-            opt(value_with_designator("M")),
-            opt(value_with_designator("S")),
-        )),
+        verify(
+            tuple((
+                opt(value_with_designator("H")),
+                opt(value_with_designator("M")),
+                opt(value_with_designator("S")),
+            )),
+            |(hour, minute, second)| hour.is_some() || minute.is_some() || second.is_some(),
+        ),
     ))(input)?;
 
     let (hour, minute, second) = time.unwrap_or_default();
