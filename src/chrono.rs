@@ -213,3 +213,17 @@ fn test_chrono() {
     let week: Duration = "P1W".parse().unwrap();
     assert_eq!(week.to_chrono(), Some(ChronoDuration::weeks(1)));
 }
+
+/// Kani proof harnesses for the `chrono` conversions.
+#[cfg(kani)]
+mod proofs {
+    use super::seconds_to_chrono_duration;
+
+    /// The seconds conversion does not panic for any `f64`.
+    ///
+    /// `to_chrono` and `sum_seconds` only add its results with `checked_add`.
+    #[kani::proof]
+    fn seconds_to_chrono_duration_never_panics() {
+        let _ = seconds_to_chrono_duration(kani::any());
+    }
+}

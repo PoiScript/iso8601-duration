@@ -341,3 +341,31 @@ fn parse_week_format(input: &str) -> IResult<&str, Duration> {
 fn _parse_extended_format(_input: &str) -> IResult<&str, Duration> {
     unimplemented!()
 }
+
+/// Kani proof harnesses for the numeric conversions.
+///
+/// The parser is not in scope: nom and `f64::from_str` do not give Kani a
+/// bounded model. The fuzz target and the property tests cover the parser.
+#[cfg(kani)]
+mod proofs {
+    use super::Duration;
+
+    /// `to_std` does not panic for any field values, NaN and infinities included.
+    #[kani::proof]
+    fn to_std_never_panics() {
+        let duration = Duration::new(
+            kani::any(),
+            kani::any(),
+            kani::any(),
+            kani::any(),
+            kani::any(),
+            kani::any(),
+        );
+
+        let result = duration.to_std();
+
+        // Show that the proof reaches both outcomes, so it is not vacuous.
+        kani::cover!(result.is_some());
+        kani::cover!(result.is_none());
+    }
+}
