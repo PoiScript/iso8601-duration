@@ -1,0 +1,25 @@
+[package]
+name = "iso8601-duration-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.iso8601-duration]
+path = ".."
+features = ["chrono"]
+
+[[bin]]
+name = "parse"
+path = "fuzz_targets/parse.rs"
+test = false
+doc = false
+bench = false
+
+# Keep this crate out of any parent workspace.
+[workspace]

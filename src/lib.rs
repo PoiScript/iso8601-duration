@@ -5,7 +5,7 @@
 //! # Installation
 //!
 //! ```toml
-//! iso8601-duration = "0.2.0"
+//! iso8601-duration = "0.3.0"
 //! ```
 //!
 //! # Usage
@@ -43,7 +43,8 @@
 //!
 //! ```rust
 //! // requires `chrono` feature
-//!
+//! # #[cfg(feature = "chrono")]
+//! # {
 //! use iso8601_duration::Duration;
 //! use chrono::DateTime;
 //!
@@ -53,6 +54,7 @@
 //!     one_month.to_chrono_at_datetime(date).num_days(),
 //!     29 // 2000 is a leap year
 //! );
+//! # }
 //! ```
 
 #[cfg(feature = "chrono")]

@@ -1,0 +1,12 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 571ad62b8f8abee51e3dd7836e3d133f5acc484ba6568b09ec2a631f4f69199f # shrinks to days = 0, hours = 0, millis = 57058
+cc 0b834944ed5a152c479f725183f6814e7dd7c78f07666893b9ddbf84eebd07df # shrinks to days = 0, hours = 0, minutes = 0, seconds = 0, fraction = "1"
+cc 5e6bcbefcd63b5c1efcaa83bcb121fc36e1c0b982b7fd7d28c8b8f0f557380bd # shrinks to days = 0, hours = 0, seconds = 0, fraction = "1"
+cc f9be9be4e95f23f01c7edae2f065a53a7a15d0a075db807a96eea8fe23171bcd # shrinks to input = "P0,0M"
+cc eb218c10471b960ac4e30836b722d6297d08171850dff01c364461fc81d838e4 # shrinks to input = "PT0M"
+cc bb038ed6219393881b36a5890ba19f11389687d65d2fbfd777d951f0d727bdfb # shrinks to input = "PinfW"

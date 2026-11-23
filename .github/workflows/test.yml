@@ -4,42 +4,96 @@ on:
   push:
     branches:
       - master
+  pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   test:
+    name: Format, lint and test
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@master
-
-      - name: Install latest stable Rust
-        uses: actions-rs/toolchain@v1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          toolchain: stable
-          default: true
-          override: true
+          persist-credentials: false
 
-      - name: Install minimal stable with clippy and rustfmt
-        uses: actions-rs/toolchain@v1
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@df2a88e9fe4098bad09cb42c3dec7187f15861fc # master
         with:
-          profile: minimal
           toolchain: stable
           components: rustfmt, clippy
 
       - name: Run rustfmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: -- --check
+        run: cargo fmt --all -- --check
 
       - name: Run clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
+        run: cargo clippy --all-targets -- -D warnings
 
-      - name: Run test
-        uses: actions-rs/cargo@v1
+      - name: Run clippy with all features
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Run tests
+        run: cargo test
+
+      - name: Run tests with all features
+        run: cargo test --all-features
+
+  msrv:
+    name: Check MSRV (1.81)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          command: test
-          args: --all-features
+          persist-credentials: false
+
+      - name: Install Rust 1.81
+        uses: dtolnay/rust-toolchain@df2a88e9fe4098bad09cb42c3dec7187f15861fc # master
+        with:
+          toolchain: "1.81"
+
+      - name: Check with all features
+        run: cargo check --all-features
+
+  fuzz:
+    name: Build fuzz targets
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install nightly Rust
+        uses: dtolnay/rust-toolchain@df2a88e9fe4098bad09cb42c3dec7187f15861fc # master
+        with:
+          toolchain: nightly
+
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz --locked
+
+      - name: Build fuzz targets
+        run: cargo fuzz build
+
+      - name: Run fuzz seed inputs
+        run: cargo fuzz run parse fuzz/seeds/parse -- -runs=0
+
+  kani:
+    name: Kani proofs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run Kani
+        uses: model-checking/kani-github-action@69d357bade1eb7b32bc3fc3d5c3d173c5bfa5237 # v1
+        with:
+          args: --features chrono
