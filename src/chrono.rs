@@ -1,5 +1,5 @@
 use std::convert::TryFrom;
-use std::ops::Add;
+use std::ops::{Add, Sub};
 
 use chrono::{DateTime, Datelike, Duration as ChronoDuration, NaiveDate, TimeZone};
 
@@ -68,7 +68,7 @@ fn seconds_in_month(date: NaiveDate) -> f64 {
 /// Converts `duration` to a `chrono::Duration`, measured at `at`.
 ///
 /// Years and months use the length of the calendar year and month that
-/// contain `at`. `Add` uses this rule.
+/// contain `at`. Both `Add` and `Sub` use this rule.
 ///
 /// # Panics
 ///
@@ -146,6 +146,21 @@ impl<Tz: TimeZone> Add<Duration> for DateTime<Tz> {
     }
 }
 
+/// Subtracts a duration. Years and months use the calendar year and month of `self`.
+///
+/// # Panics
+///
+/// Panics if the result is out of the range of `DateTime`.
+impl<Tz: TimeZone> Sub<Duration> for DateTime<Tz> {
+    type Output = DateTime<Tz>;
+
+    fn sub(self, rhs: Duration) -> Self {
+        let delta = calendar_delta(&self, rhs);
+
+        self - delta
+    }
+}
+
 #[test]
 fn test_chrono() {
     use chrono::Utc;
@@ -180,6 +195,19 @@ fn test_chrono() {
     assert_eq!(
         (ymd(2001, 4, 1) + half_month).to_rfc3339(),
         "2001-04-16T00:00:00+00:00" // 15days
+    );
+
+    assert_eq!(
+        (ymd(2001, 4, 16) - half_month).to_rfc3339(),
+        "2001-04-01T00:00:00+00:00" // 15days
+    );
+    assert_eq!(
+        (ymd(2000, 8, 31) - quarter).to_rfc3339(),
+        "2000-05-31T12:00:00+00:00" // 91.5days
+    );
+    assert_eq!(
+        (ymd(2001, 3, 1) - "P1DT1H".parse::<Duration>().unwrap()).to_rfc3339(),
+        "2001-02-27T23:00:00+00:00"
     );
 
     let week: Duration = "P1W".parse().unwrap();
