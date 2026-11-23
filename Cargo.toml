@@ -6,6 +6,7 @@ description = "Parse ISO8601 duration format."
 repository = "https://github.com/PoiScript/iso8601-duration"
 readme = "README.md"
 edition = "2018"
+rust-version = "1.81"
 license = "MIT"
 keywords = ["iso8601", "duration", "parser"]
 

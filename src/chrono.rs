@@ -166,12 +166,11 @@ fn test_chrono() {
     use chrono::Utc;
 
     fn ymd(y: i32, m: u32, d: u32) -> DateTime<Utc> {
-        DateTime::<Utc>::from_utc(
-            NaiveDate::from_ymd_opt(y, m, d)
+        Utc.from_utc_datetime(
+            &NaiveDate::from_ymd_opt(y, m, d)
                 .unwrap()
                 .and_hms_opt(0, 0, 0)
                 .unwrap(),
-            Utc,
         )
     }
 

@@ -43,6 +43,8 @@
 //!
 //! ```rust
 //! // requires `chrono` feature
+//! # #[cfg(feature = "chrono")]
+//! # {
 //! use iso8601_duration::Duration;
 //! use chrono::DateTime;
 //!
@@ -52,6 +54,7 @@
 //!     one_month.to_chrono_at_datetime(date).num_days(),
 //!     29 // 2000 is a leap year
 //! );
+//! # }
 //! ```
 
 #[cfg(feature = "chrono")]

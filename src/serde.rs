@@ -59,7 +59,7 @@ fn test_serde() {
 
     let s = r#""P3Y6M4DT12H30M5S""#;
 
-    let d: Duration = from_str(&s).unwrap();
+    let d: Duration = from_str(s).unwrap();
 
     assert_eq!(to_string(&d).unwrap(), s);
 }
